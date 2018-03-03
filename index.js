@@ -8,11 +8,27 @@ const app = new Koa();
 require("./includes/mongo")(app);
 const jwt = require("./includes/jwt");
 const router = new Router();
+const routerNotes = new Router();
 const routerNotSecure = new Router();
 
 app.use(BodyParser());
 
 router.use(jwt.errorHandler()).use(jwt.jwt());
+
+var checkOwnerOrRole = function(ctx) {
+  console.log(ctx.state);
+  if(ctx.state.user.username == ctx.state.username.login) {
+    return true;
+  }
+  if(ctx.state.user.role != 'admin') {
+    ctx.status = 401;
+    ctx.body = {
+        "error": "Not authorized"
+    };
+    return false
+  }
+  return true;
+}
 
 router.get("/", function (ctx) {
     ctx.body = {message: "Hello World!"}
@@ -45,40 +61,49 @@ router.delete("/users/:username", async (ctx) => {
 });
 
 router.get("/users/:username/notes", async (ctx) => {
-  console.log(ctx.state);
-  ctx.body = await ctx.app.notes.find({
-    login: ctx.state.username.login
-  }).toArray();
+  if(checkOwnerOrRole(ctx)) {
+    ctx.body = await ctx.app.notes.find({
+      login: ctx.state.username.login
+    }).toArray();
+  }
 });
 
 router.post("/users/:username/notes", async (ctx) => {
+  if(checkOwnerOrRole(ctx)) {
   ctx.request.body.login = ctx.state.username.login;
   ctx.body = await ctx.app.notes.insert(ctx.request.body);
+  }
 });
 
 router.get("/users/:username/notes/:id", async (ctx) => {
-  console.log(ctx.state);
+  if(checkOwnerOrRole(ctx)) {
   ctx.body = await ctx.app.notes.findOne({
     "_id": ObjectID(ctx.params.id),
     login: ctx.state.username.login});
+  }
 });
 
 router.put("/users/:username/notes/:id", async (ctx) => {
+  if(checkOwnerOrRole(ctx)) {
   let documentQuery = {
     login: ctx.state.username.login,
     "_id": ObjectID(ctx.params.id)
   };
   let valuesToUpdate = ctx.request.body;
   ctx.body = await ctx.app.notes.updateOne(documentQuery, valuesToUpdate);
+}
 });
 
 router.delete("/users/:username/notes/:id", async (ctx) => {
+  if(checkOwnerOrRole(ctx)) {
   let documentQuery = {
     login: ctx.state.username.login,
     "_id": ObjectID(ctx.params.id)
   };
   ctx.body = await ctx.app.users.deleteOne(documentQuery);
+}
 });
+
 
 
 router.param('username', async (id, ctx, next) => {
