@@ -1,0 +1,28 @@
+{
+  "name": "koa-note-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cs": "eslint --fix *.js includes/*.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microservice-framework/koa-note-example.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/microservice-framework/koa-note-example/issues"
+  },
+  "homepage": "https://github.com/microservice-framework/koa-note-example#readme",
+  "dependencies": {
+    "jsonwebtoken": "^8.2.0",
+    "koa": "^2.5.0",
+    "koa-bodyparser": "^4.2.0",
+    "koa-jwt": "^3.3.0",
+    "koa-router": "^7.4.0",
+    "mongodb": "^3.0.3"
+  }
+}
