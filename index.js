@@ -18,6 +18,7 @@ router.get("/", function (ctx) {
 });
 
 router.get("/users", async (ctx) => {
+  console.log(ctx.state);
   ctx.body = await ctx.app.users.find().toArray();
 });
 
@@ -25,8 +26,10 @@ router.post("/users", async (ctx) => {
   ctx.body = await ctx.app.users.insert(ctx.request.body);
 });
 
-router.get("/users/:username", async (ctx) => {
-  ctx.body = await ctx.app.users.findOne({"login":ctx.params.username});
+router.get("/users/:username", (ctx) => {
+  console.log(ctx.state);
+  //ctx.body = await ctx.app.users.findOne({"login":ctx.params.username});
+  ctx.body = ctx.state.username;
 });
 
 router.put("/users/:username", async (ctx) => {
@@ -38,6 +41,12 @@ router.put("/users/:username", async (ctx) => {
 router.delete("/users/:username", async (ctx) => {
   let documentQuery = {"login": ctx.params.username};
   ctx.body = await ctx.app.users.deleteOne(documentQuery);
+});
+
+router.param('username', async (id, ctx, next) => {
+  ctx.state.username = await ctx.app.users.findOne({"login":ctx.params.username});
+  if (!ctx.state.username) return ctx.status = 404;
+  return next();
 });
 
 routerNotSecure.post("/login", async (ctx) => {
