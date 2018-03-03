@@ -1,6 +1,7 @@
 const Koa = require("koa");
 const Router = require("koa-router");
 const BodyParser = require("koa-bodyparser");
+const ObjectID = require("mongodb").ObjectID;
 
 
 const app = new Koa();
@@ -42,6 +43,43 @@ router.delete("/users/:username", async (ctx) => {
   let documentQuery = {"login": ctx.params.username};
   ctx.body = await ctx.app.users.deleteOne(documentQuery);
 });
+
+router.get("/users/:username/notes", async (ctx) => {
+  console.log(ctx.state);
+  ctx.body = await ctx.app.notes.find({
+    login: ctx.state.username.login
+  }).toArray();
+});
+
+router.post("/users/:username/notes", async (ctx) => {
+  ctx.request.body.login = ctx.state.username.login;
+  ctx.body = await ctx.app.notes.insert(ctx.request.body);
+});
+
+router.get("/users/:username/notes/:id", async (ctx) => {
+  console.log(ctx.state);
+  ctx.body = await ctx.app.notes.findOne({
+    "_id": ObjectID(ctx.params.id),
+    login: ctx.state.username.login});
+});
+
+router.put("/users/:username/notes/:id", async (ctx) => {
+  let documentQuery = {
+    login: ctx.state.username.login,
+    "_id": ObjectID(ctx.params.id)
+  };
+  let valuesToUpdate = ctx.request.body;
+  ctx.body = await ctx.app.notes.updateOne(documentQuery, valuesToUpdate);
+});
+
+router.delete("/users/:username/notes/:id", async (ctx) => {
+  let documentQuery = {
+    login: ctx.state.username.login,
+    "_id": ObjectID(ctx.params.id)
+  };
+  ctx.body = await ctx.app.users.deleteOne(documentQuery);
+});
+
 
 router.param('username', async (id, ctx, next) => {
   ctx.state.username = await ctx.app.users.findOne({"login":ctx.params.username});
